@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Temple Sound Engine</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000000;
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* HEADER */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+            position: relative;
+        }
+
+        .lang-switcher {
+            position: absolute;
+            top: 20px;
+            right: 0;
+            display: flex;
+            gap: 8px;
+            background: #1a1a1a;
+            padding: 6px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .lang-btn {
+            padding: 6px 12px;
+            background: transparent;
+            border: none;
+            color: #888888;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+
+        .lang-btn:active {
+            transform: scale(0.95);
+        }
+
+        .lang-btn.active {
+            background: #c9b299;
+            color: #000000;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 16px;
+            filter: brightness(1.1);
+        }
+
+        .app-title {
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: #999999;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        /* STATUS */
+        .status-bar {
+            background: #1a1a1a;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 32px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4),
+                        0 -1px 0 rgba(201,178,153,0.2) inset,
+                        0 2px 0 rgba(201,178,153,0.3);
+        }
+
+        .status-text {
+            font-size: 14px;
+            color: #888888;
+        }
+
+        .status-text.active {
+            color: #c9b299;
+            font-weight: 600;
+        }
+
+        /* BUTTONS */
+        .modes-container {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .mode-button {
+            background: #1a1a1a;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3),
+                        0 -1px 0 rgba(201,178,153,0.15) inset,
+                        0 2px 0 rgba(201,178,153,0.25);
+        }
+
+        .mode-button:active {
+            transform: scale(0.98);
+        }
+
+        .mode-button.active {
+            background: #c9b299;
+            color: #000000;
+            border-color: #c9b299;
+            box-shadow: 0 6px 20px rgba(201,178,153,0.4),
+                        0 -1px 0 rgba(255,255,255,0.3) inset,
+                        0 2px 0 rgba(0,0,0,0.2);
+        }
+
+        .mode-button.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .mode-icon {
+            font-size: 24px;
+            width: 32px;
+            text-align: center;
+        }
+
+        .mode-info {
+            flex: 1;
+        }
+
+        .mode-name {
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+
+        .mode-description {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        /* STOP BUTTON */
+        .stop-button {
+            background: #c9b299;
+            border: none;
+            border-radius: 12px;
+            padding: 18px;
+            color: #000000;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 24px;
+            width: 100%;
+            display: none;
+            box-shadow: 0 4px 20px rgba(201,178,153,0.4);
+            transition: all 0.2s ease;
+        }
+
+        .stop-button:active {
+            transform: scale(0.98);
+        }
+
+        .stop-button.visible {
+            display: block;
+        }
+
+        /* INSTRUCTIONS */
+        .instructions {
+            margin-top: 32px;
+            padding: 20px;
+            background: #1a1a1a;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+
+        .instructions h3 {
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: #c9b299;
+        }
+
+        .instructions p {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #999999;
+            margin-bottom: 8px;
+        }
+
+        .instructions strong {
+            color: #ffffff;
+        }
+
+        /* LOADING */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(201,178,153,0.3);
+            border-top-color: #c9b299;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <!-- Language Switcher -->
+            <div class="lang-switcher">
+                <button class="lang-btn active" data-lang="en" onclick="switchLanguage('en')">EN</button>
+                <button class="lang-btn" data-lang="ru" onclick="switchLanguage('ru')">RU</button>
+            </div>
+
+            <img src="logo.png" alt="Temple Logo" class="logo" id="logo">
+            <div class="app-title" data-i18n="appTitle">Temple Sound Engine</div>
+        </div>
+
+        <!-- STATUS -->
+        <div class="status-bar">
+            <div class="status-text" id="statusText" data-i18n="selectState">Select a state to begin</div>
+        </div>
+
+        <!-- MODE BUTTONS -->
+        <div class="modes-container">
+            <button class="mode-button" data-mode="sleep" onclick="startMode('sleep')">
+                <div class="mode-icon">🌙</div>
+                <div class="mode-info">
+                    <div class="mode-name" data-i18n="modeSleep">Deep Sleep</div>
+                    <div class="mode-description" data-i18n="modeSleepDesc">Delta waves · 0.1-4 Hz</div>
+                </div>
+            </button>
+
+            <button class="mode-button" data-mode="meditation" onclick="startMode('meditation')">
+                <div class="mode-icon">🧘</div>
+                <div class="mode-info">
+                    <div class="mode-name" data-i18n="modeMeditation">Meditation</div>
+                    <div class="mode-description" data-i18n="modeMeditationDesc">Theta waves · 4-8 Hz</div>
+                </div>
+            </button>
+
+            <button class="mode-button" data-mode="relax" onclick="startMode('relax')">
+                <div class="mode-icon">🌊</div>
+                <div class="mode-info">
+                    <div class="mode-name" data-i18n="modeRelax">Relaxation</div>
+                    <div class="mode-description" data-i18n="modeRelaxDesc">Alpha waves · 8-12 Hz</div>
+                </div>
+            </button>
+
+            <button class="mode-button" data-mode="work" onclick="startMode('work')">
+                <div class="mode-icon">⚡</div>
+                <div class="mode-info">
+                    <div class="mode-name" data-i18n="modeWork">Focus & Work</div>
+                    <div class="mode-description" data-i18n="modeWorkDesc">Beta waves · 12-30 Hz</div>
+                </div>
+            </button>
+
+            <button class="mode-button" data-mode="clarity" onclick="startMode('clarity')">
+                <div class="mode-icon">✨</div>
+                <div class="mode-info">
+                    <div class="mode-name" data-i18n="modeClarity">Clarity</div>
+                    <div class="mode-description" data-i18n="modeClarityDesc">Gamma waves · 30-60 Hz</div>
+                </div>
+            </button>
+        </div>
+
+        <!-- STOP BUTTON -->
+        <button class="stop-button" id="stopButton" onclick="stopMode()">
+            <span data-i18n="stopButton">⬛ Stop Generation</span>
+        </button>
+
+        <!-- INSTRUCTIONS -->
+        <div class="instructions">
+            <h3 data-i18n="guideTitle">⚡ Quick Guide</h3>
+            <p><strong data-i18n="guide1Title">Use headphones</strong> — <span data-i18n="guide1Text">Binaural beats require stereo separation</span></p>
+            <p><strong data-i18n="guide2Title">Set comfortable volume</strong> — <span data-i18n="guide2Text">Sound should be background, not dominant</span></p>
+            <p><strong data-i18n="guide3Title">Find quiet space</strong> — <span data-i18n="guide3Text">Minimize external distractions</span></p>
+            <p><strong data-i18n="guide4Title">Relax and focus</strong> — <span data-i18n="guide4Text">Let the frequency guide your state</span></p>
+        </div>
+    </div>
+
+    <!-- LOADING -->
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- AUDIO CORE -->
+    <script src="audio.js"></script>
+
+    <!-- MAIN APP SCRIPT -->
+    <script>
+        // Translations
+        const translations = {
+            en: {
+                appTitle: 'Temple Sound Engine',
+                selectState: 'Select a state to begin',
+                playingState: 'Playing',
+                
+                modeSleep: 'Deep Sleep',
+                modeSleepDesc: 'Delta waves · 0.1-4 Hz',
+                modeMeditation: 'Meditation',
+                modeMeditationDesc: 'Theta waves · 4-8 Hz',
+                modeRelax: 'Relaxation',
+                modeRelaxDesc: 'Alpha waves · 8-12 Hz',
+                modeWork: 'Focus & Work',
+                modeWorkDesc: 'Beta waves · 12-30 Hz',
+                modeClarity: 'Clarity',
+                modeClarityDesc: 'Gamma waves · 30-60 Hz',
+                
+                stopButton: '⬛ Stop Generation',
+                
+                guideTitle: '⚡ Quick Guide',
+                guide1Title: 'Use headphones',
+                guide1Text: 'Binaural beats require stereo separation',
+                guide2Title: 'Set comfortable volume',
+                guide2Text: 'Sound should be background, not dominant',
+                guide3Title: 'Find quiet space',
+                guide3Text: 'Minimize external distractions',
+                guide4Title: 'Relax and focus',
+                guide4Text: 'Let the frequency guide your state'
+            },
+            ru: {
+                appTitle: 'Temple Sound Engine',
+                selectState: 'Выберите состояние для начала',
+                playingState: 'Играет',
+                
+                modeSleep: 'Глубокий сон',
+                modeSleepDesc: 'Дельта-волны · 0.1-4 Гц',
+                modeMeditation: 'Медитация',
+                modeMeditationDesc: 'Тета-волны · 4-8 Гц',
+                modeRelax: 'Расслабление',
+                modeRelaxDesc: 'Альфа-волны · 8-12 Гц',
+                modeWork: 'Фокус и работа',
+                modeWorkDesc: 'Бета-волны · 12-30 Гц',
+                modeClarity: 'Ясность',
+                modeClarityDesc: 'Гамма-волны · 30-60 Гц',
+                
+                stopButton: '⬛ Остановить генерацию',
+                
+                guideTitle: '⚡ Краткое руководство',
+                guide1Title: 'Используйте наушники',
+                guide1Text: 'Бинауральные ритмы требуют стерео разделения',
+                guide2Title: 'Установите комфортную громкость',
+                guide2Text: 'Звук должен быть фоном, а не доминировать',
+                guide3Title: 'Найдите тихое место',
+                guide3Text: 'Минимизируйте внешние отвлечения',
+                guide4Title: 'Расслабьтесь и сосредоточьтесь',
+                guide4Text: 'Позвольте частоте направлять ваше состояние'
+            }
+        };
+
+        // Current language
+        let currentLang = 'en';
+
+        // Switch language function
+        function switchLanguage(lang) {
+            currentLang = lang;
+            
+            // Save to localStorage
+            try {
+                localStorage.setItem('temple_lang', lang);
+            } catch(e) {}
+            
+            // Update UI
+            updateLanguage();
+            
+            // Update active button
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                if (btn.dataset.lang === lang) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // Haptic feedback
+            if (tg && tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+        }
+
+        // Update all translated elements
+        function updateLanguage() {
+            const t = translations[currentLang];
+            
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (t[key]) {
+                    element.textContent = t[key];
+                }
+            });
+        }
+
+        // Initialize language on load
+        function initLanguage() {
+            // Try to get from localStorage
+            let savedLang = null;
+            try {
+                savedLang = localStorage.getItem('temple_lang');
+            } catch(e) {}
+            
+            // Or get from Telegram user language
+            const tgLang = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.language_code : null;
+            
+            // Set language priority: saved > telegram > default
+            if (savedLang && translations[savedLang]) {
+                currentLang = savedLang;
+            } else if (tgLang && translations[tgLang]) {
+                currentLang = tgLang;
+            } else if (tgLang === 'ru' || tgLang === 'uk' || tgLang === 'be') {
+                currentLang = 'ru';
+            }
+            
+            // Update UI
+            switchLanguage(currentLang);
+        }
+
+        // Initialize Telegram WebApp with fallback
+        let tg = null;
+        if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp) {
+            tg = window.Telegram.WebApp;
+            tg.ready();
+            tg.expand();
+            tg.setHeaderColor('#000000');
+            tg.setBackgroundColor('#000000');
+        } else {
+            // Create mock for browser testing
+            tg = {
+                initDataUnsafe: {},
+                ready: () => {},
+                expand: () => {},
+                setHeaderColor: () => {},
+                setBackgroundColor: () => {},
+                HapticFeedback: { impactOccurred: () => {} },
+                BackButton: { 
+                    onClick: () => {}, 
+                    show: () => {}, 
+                    hide: () => {} 
+                },
+                close: () => {}
+            };
+            console.log('Running in browser mode (Telegram WebApp not available)');
+        }
+
+        // State management
+        let currentMode = null;
+        let isPlaying = false;
+
+        const statusText = document.getElementById('statusText');
+        const stopButton = document.getElementById('stopButton');
+        const loading = document.getElementById('loading');
+        const modeButtons = document.querySelectorAll('.mode-button');
+
+        // Start mode
+        function startMode(mode) {
+            if (isPlaying) return;
+
+            // Show loading
+            loading.classList.add('visible');
+
+            // Small delay for UI feedback
+            setTimeout(() => {
+                loading.classList.remove('visible');
+
+                // Start audio
+                if (window.TempleAudio && typeof window.TempleAudio.start === 'function') {
+                    try {
+                        window.TempleAudio.start(mode);
+                        console.log('Audio started for mode:', mode);
+                    } catch(err) {
+                        console.error('Error starting audio:', err);
+                        alert('Error starting audio. Please check console.');
+                        return;
+                    }
+                } else {
+                    console.error('TempleAudio not found or start function missing');
+                    alert('Audio engine not loaded. Please refresh the page.');
+                    return;
+                }
+
+                // Update UI
+                currentMode = mode;
+                isPlaying = true;
+                
+                const activeButton = document.querySelector(`[data-mode="${mode}"]`);
+                const modeName = activeButton.querySelector('.mode-name').textContent;
+                
+                const t = translations[currentLang];
+                statusText.textContent = `${t.playingState}: ${modeName}`;
+                statusText.classList.add('active');
+
+                // Disable all buttons except active
+                modeButtons.forEach(btn => {
+                    if (btn.dataset.mode === mode) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.add('disabled');
+                    }
+                });
+
+                // Show stop button
+                stopButton.classList.add('visible');
+
+                // Send haptic feedback
+                if (tg && tg.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('medium');
+                }
+
+                // Show back button in Telegram
+                updateBackButton();
+            }, 300);
+        }
+
+        // Stop mode
+        function stopMode() {
+            if (!isPlaying) return;
+
+            // Stop audio
+            if (window.TempleAudio && typeof window.TempleAudio.stop === 'function') {
+                try {
+                    window.TempleAudio.stop();
+                    console.log('Audio stopped');
+                } catch(err) {
+                    console.error('Error stopping audio:', err);
+                }
+            }
+
+            // Update UI
+            isPlaying = false;
+            currentMode = null;
+
+            const t = translations[currentLang];
+            statusText.textContent = t.selectState;
+            statusText.classList.remove('active');
+
+            // Re-enable all buttons
+            modeButtons.forEach(btn => {
+                btn.classList.remove('active', 'disabled');
+            });
+
+            // Hide stop button
+            stopButton.classList.remove('visible');
+
+            // Send haptic feedback
+            if (tg && tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+
+            // Update back button
+            updateBackButton();
+        }
+
+        // Handle back button
+        if (tg && tg.BackButton) {
+            tg.BackButton.onClick(() => {
+                if (isPlaying) {
+                    stopMode();
+                } else {
+                    tg.close();
+                }
+            });
+        }
+
+        // Show/hide back button
+        function updateBackButton() {
+            if (tg && tg.BackButton) {
+                if (isPlaying) {
+                    tg.BackButton.show();
+                } else {
+                    tg.BackButton.hide();
+                }
+            }
+        }
+
+        // Initialize app on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initLanguage();
+            console.log('Temple Sound Engine initialized');
+            console.log('TempleAudio available:', typeof window.TempleAudio !== 'undefined');
+        });
+    </script>
+</body>
+</html>
