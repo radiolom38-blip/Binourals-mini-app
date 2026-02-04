@@ -590,7 +590,7 @@
         let currentLang = 'en';
         
         // Premium status
-        let isPremium = true;
+        let isPremium = false;
 
         // Switch language function
         function switchLanguage(lang) {
@@ -649,6 +649,13 @@
 
         // Check premium status
         function checkPremiumStatus() {
+            // ⚠️ ТЕСТОВЫЙ РЕЖИМ: Все режимы разблокированы
+            isPremium = true;
+            updatePremiumUI();
+            return;
+            
+            // Код ниже закомментирован для тестирования
+            /*
             // Проверка в localStorage (для тестирования)
             try {
                 const saved = localStorage.getItem('temple_premium');
@@ -675,6 +682,7 @@
             // Отправляем user_id на сервер, получаем статус подписки и дату окончания
             
             updatePremiumUI();
+            */
         }
 
         // Update UI based on premium status
@@ -714,7 +722,7 @@
             // Это делается на вашем сервере!
             
             // Пример URL invoice (замените на реальный)
-            const invoiceUrl = 'https://t.me/$EI9lIQ9UGEjIGAAA-lIwmv7-XLA';
+            const invoiceUrl = 'YOUR_INVOICE_LINK_HERE';
             
             tg.openInvoice(invoiceUrl, (status) => {
                 loading.classList.remove('visible');
