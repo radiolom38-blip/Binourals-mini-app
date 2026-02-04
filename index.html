@@ -87,19 +87,6 @@
             font-weight: 500;
         }
 
-        /* PREMIUM BADGE */
-        .premium-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            color: #000;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 700;
-            margin-left: 8px;
-            letter-spacing: 0.5px;
-        }
-
         /* STATUS */
         .status-bar {
             background: #1a1a1a;
@@ -147,7 +134,6 @@
             box-shadow: 0 4px 16px rgba(0,0,0,0.3),
                         0 -1px 0 rgba(201,178,153,0.15) inset,
                         0 2px 0 rgba(201,178,153,0.25);
-            position: relative;
         }
 
         .mode-button:active {
@@ -168,17 +154,6 @@
             pointer-events: none;
         }
 
-        .mode-button.locked {
-            opacity: 0.6;
-        }
-
-        .mode-button.locked::after {
-            content: '🔒';
-            position: absolute;
-            right: 20px;
-            font-size: 20px;
-        }
-
         .mode-icon {
             font-size: 24px;
             width: 32px;
@@ -197,83 +172,6 @@
         .mode-description {
             font-size: 12px;
             opacity: 0.7;
-        }
-
-        /* PREMIUM BANNER */
-        .premium-banner {
-            background: linear-gradient(135deg, #1a1410 0%, #0f0f0f 100%);
-            border: 2px solid #FFD700;
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 24px;
-            text-align: center;
-            box-shadow: 0 8px 32px rgba(255,215,0,0.2);
-        }
-
-        .premium-banner h3 {
-            color: #FFD700;
-            font-size: 18px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .premium-banner p {
-            color: #cccccc;
-            font-size: 14px;
-            margin-bottom: 16px;
-            line-height: 1.6;
-        }
-
-        .premium-banner ul {
-            list-style: none;
-            padding: 0;
-            margin-bottom: 20px;
-        }
-
-        .premium-banner li {
-            color: #ffffff;
-            font-size: 13px;
-            margin-bottom: 8px;
-            padding-left: 24px;
-            position: relative;
-        }
-
-        .premium-banner li::before {
-            content: '✓';
-            position: absolute;
-            left: 0;
-            color: #FFD700;
-            font-weight: bold;
-        }
-
-        .buy-button {
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            border: none;
-            border-radius: 12px;
-            padding: 16px 32px;
-            color: #000000;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 4px 20px rgba(255,215,0,0.4);
-            transition: all 0.2s ease;
-        }
-
-        .buy-button:active {
-            transform: scale(0.98);
-        }
-
-        .price {
-            font-size: 18px;
-            font-weight: 800;
         }
 
         /* STOP BUTTON */
@@ -362,23 +260,6 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-
-        /* RESTORE PURCHASE */
-        .restore-link {
-            text-align: center;
-            margin-top: 16px;
-        }
-
-        .restore-link a {
-            color: #888888;
-            font-size: 13px;
-            text-decoration: none;
-            border-bottom: 1px dashed #888888;
-        }
-
-        .restore-link a:active {
-            color: #c9b299;
-        }
     </style>
 </head>
 <body>
@@ -392,33 +273,7 @@
             </div>
 
             <img src="logo.png" alt="Temple Logo" class="logo" id="logo">
-            <div class="app-title" data-i18n="appTitle">
-                Temple Sound Engine
-                <span class="premium-badge" id="premiumBadge" style="display:none;">PREMIUM</span>
-            </div>
-        </div>
-
-        <!-- PREMIUM BANNER (показывается если нет подписки) -->
-        <div class="premium-banner" id="premiumBanner" style="display:none;">
-            <h3>
-                <span>⭐</span>
-                <span data-i18n="unlockPremium">Unlock Premium Access</span>
-                <span>⭐</span>
-            </h3>
-            <p data-i18n="premiumDescription">Get unlimited access to all 5 binaural modes for 1 month</p>
-            <ul>
-                <li data-i18n="benefit1">All 5 frequency modes unlocked</li>
-                <li data-i18n="benefit2">Unlimited generation time</li>
-                <li data-i18n="benefit3">1 month access - renews automatically</li>
-                <li data-i18n="benefit4">Support development</li>
-            </ul>
-            <button class="buy-button" onclick="buyPremium()">
-                <span data-i18n="buyButton">Subscribe for 1 Month</span>
-                <span class="price">⭐ 250 Stars/mo</span>
-            </button>
-            <div class="restore-link">
-                <a href="#" onclick="restorePurchase(); return false;" data-i18n="restoreLink">Restore Purchase</a>
-            </div>
+            <div class="app-title" data-i18n="appTitle">Temple Sound Engine</div>
         </div>
 
         <!-- STATUS -->
@@ -428,16 +283,6 @@
 
         <!-- MODE BUTTONS -->
         <div class="modes-container">
-            <!-- FREE MODE -->
-            <button class="mode-button" data-mode="work" data-free="true" onclick="startMode('work')">
-                <div class="mode-icon">⚡</div>
-                <div class="mode-info">
-                    <div class="mode-name" data-i18n="modeWork">Focus & Work</div>
-                    <div class="mode-description" data-i18n="modeWorkDesc">Beta waves · 12-30 Hz · FREE</div>
-                </div>
-            </button>
-
-            <!-- ВСЕ РЕЖИМЫ РАЗБЛОКИРОВАНЫ ДЛЯ ТЕСТИРОВАНИЯ -->
             <button class="mode-button" data-mode="sleep" onclick="startMode('sleep')">
                 <div class="mode-icon">🌙</div>
                 <div class="mode-info">
@@ -459,6 +304,14 @@
                 <div class="mode-info">
                     <div class="mode-name" data-i18n="modeRelax">Relaxation</div>
                     <div class="mode-description" data-i18n="modeRelaxDesc">Alpha waves · 8-12 Hz</div>
+                </div>
+            </button>
+
+            <button class="mode-button" data-mode="work" onclick="startMode('work')">
+                <div class="mode-icon">⚡</div>
+                <div class="mode-info">
+                    <div class="mode-name" data-i18n="modeWork">Focus & Work</div>
+                    <div class="mode-description" data-i18n="modeWorkDesc">Beta waves · 12-30 Hz</div>
                 </div>
             </button>
 
@@ -503,15 +356,6 @@
                 selectState: 'Select a state to begin',
                 playingState: 'Playing',
                 
-                unlockPremium: 'Unlock Premium Access',
-                premiumDescription: 'Get unlimited access to all 5 binaural modes for 1 month',
-                benefit1: 'All 5 frequency modes unlocked',
-                benefit2: 'Unlimited generation time',
-                benefit3: '1 month access - renews automatically',
-                benefit4: 'Support development',
-                buyButton: 'Subscribe for 1 Month',
-                restoreLink: 'Restore Purchase',
-                
                 modeSleep: 'Deep Sleep',
                 modeSleepDesc: 'Delta waves · 0.1-4 Hz',
                 modeMeditation: 'Meditation',
@@ -519,7 +363,7 @@
                 modeRelax: 'Relaxation',
                 modeRelaxDesc: 'Alpha waves · 8-12 Hz',
                 modeWork: 'Focus & Work',
-                modeWorkDesc: 'Beta waves · 12-30 Hz · FREE',
+                modeWorkDesc: 'Beta waves · 12-30 Hz',
                 modeClarity: 'Clarity',
                 modeClarityDesc: 'Gamma waves · 30-60 Hz',
                 
@@ -533,27 +377,12 @@
                 guide3Title: 'Find quiet space',
                 guide3Text: 'Minimize external distractions',
                 guide4Title: 'Relax and focus',
-                guide4Text: 'Let the frequency guide your state',
-                
-                premiumOnly: 'This mode requires Premium',
-                purchaseSuccess: 'Premium unlocked! Enjoy all modes!',
-                purchaseError: 'Purchase failed. Please try again.',
-                restoreSuccess: 'Purchase restored successfully!',
-                restoreError: 'No purchase found.'
+                guide4Text: 'Let the frequency guide your state'
             },
             ru: {
                 appTitle: 'Temple Sound Engine',
                 selectState: 'Выберите состояние для начала',
                 playingState: 'Играет',
-                
-                unlockPremium: 'Открыть Premium доступ',
-                premiumDescription: 'Получите неограниченный доступ ко всем 5 режимам на 1 месяц',
-                benefit1: 'Все 5 частотных режимов разблокированы',
-                benefit2: 'Неограниченное время генерации',
-                benefit3: 'Доступ на 1 месяц - автопродление',
-                benefit4: 'Поддержите разработку',
-                buyButton: 'Подписаться на 1 месяц',
-                restoreLink: 'Восстановить покупку',
                 
                 modeSleep: 'Глубокий сон',
                 modeSleepDesc: 'Дельта-волны · 0.1-4 Гц',
@@ -562,7 +391,7 @@
                 modeRelax: 'Расслабление',
                 modeRelaxDesc: 'Альфа-волны · 8-12 Гц',
                 modeWork: 'Фокус и работа',
-                modeWorkDesc: 'Бета-волны · 12-30 Гц · БЕСПЛАТНО',
+                modeWorkDesc: 'Бета-волны · 12-30 Гц',
                 modeClarity: 'Ясность',
                 modeClarityDesc: 'Гамма-волны · 30-60 Гц',
                 
@@ -576,32 +405,26 @@
                 guide3Title: 'Найдите тихое место',
                 guide3Text: 'Минимизируйте внешние отвлечения',
                 guide4Title: 'Расслабьтесь и сосредоточьтесь',
-                guide4Text: 'Позвольте частоте направлять ваше состояние',
-                
-                premiumOnly: 'Этот режим требует Premium',
-                purchaseSuccess: 'Premium активирован! Наслаждайтесь всеми режимами!',
-                purchaseError: 'Ошибка покупки. Попробуйте снова.',
-                restoreSuccess: 'Покупка успешно восстановлена!',
-                restoreError: 'Покупка не найдена.'
+                guide4Text: 'Позвольте частоте направлять ваше состояние'
             }
         };
 
         // Current language
         let currentLang = 'en';
-        
-        // Premium status
-        let isPremium = false;
 
         // Switch language function
         function switchLanguage(lang) {
             currentLang = lang;
             
+            // Save to localStorage
             try {
                 localStorage.setItem('temple_lang', lang);
             } catch(e) {}
             
+            // Update UI
             updateLanguage();
             
+            // Update active button
             document.querySelectorAll('.lang-btn').forEach(btn => {
                 if (btn.dataset.lang === lang) {
                     btn.classList.add('active');
@@ -610,6 +433,7 @@
                 }
             });
             
+            // Haptic feedback
             if (tg && tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('light');
             }
@@ -627,15 +451,18 @@
             });
         }
 
-        // Initialize language
+        // Initialize language on load
         function initLanguage() {
+            // Try to get from localStorage
             let savedLang = null;
             try {
                 savedLang = localStorage.getItem('temple_lang');
             } catch(e) {}
             
+            // Or get from Telegram user language
             const tgLang = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.language_code : null;
             
+            // Set language priority: saved > telegram > default
             if (savedLang && translations[savedLang]) {
                 currentLang = savedLang;
             } else if (tgLang && translations[tgLang]) {
@@ -644,183 +471,11 @@
                 currentLang = 'ru';
             }
             
+            // Update UI
             switchLanguage(currentLang);
         }
 
-        // Check premium status
-        function checkPremiumStatus() {
-            // ⚠️ ТЕСТОВЫЙ РЕЖИМ: Все режимы разблокированы
-            isPremium = true;
-            updatePremiumUI();
-            return;
-            
-            // Код ниже закомментирован для тестирования
-            /*
-            // Проверка в localStorage (для тестирования)
-            try {
-                const saved = localStorage.getItem('temple_premium');
-                const expiry = localStorage.getItem('temple_premium_expiry');
-                
-                if (saved === 'true' && expiry) {
-                    const expiryDate = new Date(parseInt(expiry));
-                    const now = new Date();
-                    
-                    // Проверяем, не истёк ли срок
-                    if (now < expiryDate) {
-                        isPremium = true;
-                        updatePremiumUI();
-                        return;
-                    } else {
-                        // Подписка истекла
-                        localStorage.removeItem('temple_premium');
-                        localStorage.removeItem('temple_premium_expiry');
-                    }
-                }
-            } catch(e) {}
-            
-            // TODO: Здесь будет проверка через ваш сервер
-            // Отправляем user_id на сервер, получаем статус подписки и дату окончания
-            
-            updatePremiumUI();
-            */
-        }
-
-        // Update UI based on premium status
-        function updatePremiumUI() {
-            const banner = document.getElementById('premiumBanner');
-            const badge = document.getElementById('premiumBadge');
-            
-            if (isPremium) {
-                // Скрыть баннер
-                banner.style.display = 'none';
-                // Показать бейдж
-                badge.style.display = 'inline-block';
-                // Разблокировать все режимы
-                document.querySelectorAll('[data-premium="true"]').forEach(btn => {
-                    btn.classList.remove('locked');
-                    btn.onclick = function() { startMode(this.dataset.mode); };
-                });
-            } else {
-                // Показать баннер
-                banner.style.display = 'block';
-                // Скрыть бейдж
-                badge.style.display = 'none';
-            }
-        }
-
-        // Buy premium
-        function buyPremium() {
-            if (!tg || !tg.openInvoice) {
-                alert('Payment only available in Telegram');
-                return;
-            }
-            
-            const t = translations[currentLang];
-            loading.classList.add('visible');
-            
-            // ВАЖНО: Здесь нужно создать invoice через Bot API
-            // Это делается на вашем сервере!
-            
-            // Пример URL invoice (замените на реальный)
-            const invoiceUrl = 'YOUR_INVOICE_LINK_HERE';
-            
-            tg.openInvoice(invoiceUrl, (status) => {
-                loading.classList.remove('visible');
-                
-                if (status === 'paid') {
-                    // Платёж успешен
-                    isPremium = true;
-                    
-                    // Сохраняем дату окончания подписки (через 30 дней)
-                    const expiryDate = new Date();
-                    expiryDate.setDate(expiryDate.getDate() + 30);
-                    
-                    try {
-                        localStorage.setItem('temple_premium', 'true');
-                        localStorage.setItem('temple_premium_expiry', expiryDate.getTime().toString());
-                    } catch(e) {}
-                    
-                    updatePremiumUI();
-                    tg.showAlert(t.purchaseSuccess);
-                    
-                    if (tg.HapticFeedback) {
-                        tg.HapticFeedback.notificationOccurred('success');
-                    }
-                } else if (status === 'cancelled') {
-                    // Платёж отменён
-                    console.log('Payment cancelled');
-                } else {
-                    // Ошибка
-                    tg.showAlert(t.purchaseError);
-                    if (tg.HapticFeedback) {
-                        tg.HapticFeedback.notificationOccurred('error');
-                    }
-                }
-            });
-        }
-
-        // Restore purchase
-        function restorePurchase() {
-            const t = translations[currentLang];
-            loading.classList.add('visible');
-            
-            // TODO: Проверка на сервере
-            // Отправить user_id, получить статус подписки и дату окончания
-            
-            setTimeout(() => {
-                loading.classList.remove('visible');
-                
-                // Пример восстановления из localStorage
-                try {
-                    const saved = localStorage.getItem('temple_premium');
-                    const expiry = localStorage.getItem('temple_premium_expiry');
-                    
-                    if (saved === 'true' && expiry) {
-                        const expiryDate = new Date(parseInt(expiry));
-                        const now = new Date();
-                        
-                        if (now < expiryDate) {
-                            isPremium = true;
-                            updatePremiumUI();
-                            
-                            // Показать дату окончания
-                            const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
-                            tg.showAlert(`${t.restoreSuccess}\nДней до окончания: ${daysLeft}`);
-                            return;
-                        } else {
-                            // Подписка истекла
-                            localStorage.removeItem('temple_premium');
-                            localStorage.removeItem('temple_premium_expiry');
-                        }
-                    }
-                } catch(e) {}
-                
-                tg.showAlert(t.restoreError);
-            }, 1000);
-        }
-
-        // Try premium mode (when locked)
-        function tryPremiumMode(mode) {
-            if (isPremium) {
-                startMode(mode);
-            } else {
-                const t = translations[currentLang];
-                tg.showPopup({
-                    title: '⭐ Premium',
-                    message: t.premiumOnly,
-                    buttons: [
-                        {type: 'default', text: t.buyButton, id: 'buy'},
-                        {type: 'cancel'}
-                    ]
-                }, (buttonId) => {
-                    if (buttonId === 'buy') {
-                        buyPremium();
-                    }
-                });
-            }
-        }
-
-        // Initialize Telegram WebApp
+        // Initialize Telegram WebApp with fallback
         let tg = null;
         if (typeof window.Telegram !== 'undefined' && window.Telegram.WebApp) {
             tg = window.Telegram.WebApp;
@@ -829,33 +484,22 @@
             tg.setHeaderColor('#000000');
             tg.setBackgroundColor('#000000');
         } else {
+            // Create mock for browser testing
             tg = {
                 initDataUnsafe: {},
                 ready: () => {},
                 expand: () => {},
                 setHeaderColor: () => {},
                 setBackgroundColor: () => {},
-                HapticFeedback: { 
-                    impactOccurred: () => {},
-                    notificationOccurred: () => {}
-                },
+                HapticFeedback: { impactOccurred: () => {} },
                 BackButton: { 
                     onClick: () => {}, 
                     show: () => {}, 
                     hide: () => {} 
                 },
-                close: () => {},
-                openInvoice: () => {},
-                showAlert: (msg) => alert(msg),
-                showPopup: (params, callback) => {
-                    if (confirm(params.message)) {
-                        callback('buy');
-                    } else {
-                        callback('cancel');
-                    }
-                }
+                close: () => {}
             };
-            console.log('Running in browser mode');
+            console.log('Running in browser mode (Telegram WebApp not available)');
         }
 
         // State management
@@ -870,34 +514,31 @@
         // Start mode
         function startMode(mode) {
             if (isPlaying) return;
-            
-            // Проверка premium для платных режимов
-            const button = document.querySelector(`[data-mode="${mode}"]`);
-            if (button.dataset.premium === 'true' && !isPremium) {
-                tryPremiumMode(mode);
-                return;
-            }
 
+            // Show loading
             loading.classList.add('visible');
 
+            // Small delay for UI feedback
             setTimeout(() => {
                 loading.classList.remove('visible');
 
+                // Start audio
                 if (window.TempleAudio && typeof window.TempleAudio.start === 'function') {
                     try {
                         window.TempleAudio.start(mode);
                         console.log('Audio started for mode:', mode);
                     } catch(err) {
                         console.error('Error starting audio:', err);
-                        tg.showAlert('Error starting audio');
+                        alert('Error starting audio. Please check console.');
                         return;
                     }
                 } else {
-                    console.error('TempleAudio not found');
-                    tg.showAlert('Audio engine not loaded');
+                    console.error('TempleAudio not found or start function missing');
+                    alert('Audio engine not loaded. Please refresh the page.');
                     return;
                 }
 
+                // Update UI
                 currentMode = mode;
                 isPlaying = true;
                 
@@ -908,6 +549,7 @@
                 statusText.textContent = `${t.playingState}: ${modeName}`;
                 statusText.classList.add('active');
 
+                // Disable all buttons except active
                 modeButtons.forEach(btn => {
                     if (btn.dataset.mode === mode) {
                         btn.classList.add('active');
@@ -916,12 +558,15 @@
                     }
                 });
 
+                // Show stop button
                 stopButton.classList.add('visible');
 
+                // Send haptic feedback
                 if (tg && tg.HapticFeedback) {
                     tg.HapticFeedback.impactOccurred('medium');
                 }
 
+                // Show back button in Telegram
                 updateBackButton();
             }, 300);
         }
@@ -930,6 +575,7 @@
         function stopMode() {
             if (!isPlaying) return;
 
+            // Stop audio
             if (window.TempleAudio && typeof window.TempleAudio.stop === 'function') {
                 try {
                     window.TempleAudio.stop();
@@ -939,6 +585,7 @@
                 }
             }
 
+            // Update UI
             isPlaying = false;
             currentMode = null;
 
@@ -946,16 +593,20 @@
             statusText.textContent = t.selectState;
             statusText.classList.remove('active');
 
+            // Re-enable all buttons
             modeButtons.forEach(btn => {
                 btn.classList.remove('active', 'disabled');
             });
 
+            // Hide stop button
             stopButton.classList.remove('visible');
 
+            // Send haptic feedback
             if (tg && tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('light');
             }
 
+            // Update back button
             updateBackButton();
         }
 
@@ -981,13 +632,11 @@
             }
         }
 
-        // Initialize app
+        // Initialize app on load
         window.addEventListener('DOMContentLoaded', () => {
             initLanguage();
-            checkPremiumStatus();
             console.log('Temple Sound Engine initialized');
             console.log('TempleAudio available:', typeof window.TempleAudio !== 'undefined');
-            console.log('Premium status:', isPremium);
         });
     </script>
 </body>
