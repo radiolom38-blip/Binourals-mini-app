@@ -1,32 +1,26 @@
 /* ===============================
-   ХРАМ ЗВУКА — АУДИО ЯДРО v5
-   ЭТАП (5): АДАПТИВНАЯ СТАБИЛИЗАЦИЯ
+   ХРАМ ЗВУКА — АУДИО ЯДРО v3
+   ЭТАП (3): СПЕКТРАЛЬНЫЕ СЛОИ
    =============================== */
 
 let audioCtx = null;
 
 /* --- ОСНОВА --- */
-let oscL, oscR, subOscL, subOscR;
+let oscL = null;
+let oscR = null;
+let subOscL = null;
+let subOscR = null;
 
 /* --- ГАРМОНИКИ --- */
-let harm2L, harm2R, harm3L, harm3R;
+let harm2L = null;
+let harm2R = null;
+let harm3L = null;
+let harm3R = null;
 
-/* --- ГЕЙНЫ --- */
-let masterGain = null;
-
-/* --- ВРЕМЯ И СОСТОЯНИЕ --- */
-let raf = null;
-let startTime = 0;
-let cfg = null;
-
-/* --- АДАПТАЦИЯ --- */
-let adapt = {
-  driftScale: 1.0,
-  spaceScale: 1.0,
-  targetDrift: 1.0,
-  targetSpace: 1.0,
-  lastShift: 0
-};
+let gainNode = null;
+let driftRAF = null;
+let driftStartTime = 0;
+let driftCfg = null;
 
 /* ---------- СОСТОЯНИЯ ---------- */
 
@@ -45,39 +39,52 @@ const STATES = {
 function startRitual(stateKey) {
   if (audioCtx) return;
 
-  cfg = STATES[stateKey];
+  const cfg = STATES[stateKey];
   if (!cfg) return;
 
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  startTime = audioCtx.currentTime;
 
-  /* --- ОСЦИЛЛЯТОРЫ --- */
+  /* --- ОСНОВНЫЕ ОСЦИЛЛЯТОРЫ --- */
   oscL = audioCtx.createOscillator();
   oscR = audioCtx.createOscillator();
   subOscL = audioCtx.createOscillator();
   subOscR = audioCtx.createOscillator();
+
+  oscL.type = oscR.type = "sine";
+  subOscL.type = subOscR.type = "sine";
+
+  oscL.frequency.value = cfg.base;
+  oscR.frequency.value = cfg.base * 1.004;
+
+  subOscL.frequency.value = cfg.base - 2.2;
+  subOscR.frequency.value = cfg.base - 1.8;
+
+  /* --- ГАРМОНИКИ --- */
   harm2L = audioCtx.createOscillator();
   harm2R = audioCtx.createOscillator();
   harm3L = audioCtx.createOscillator();
   harm3R = audioCtx.createOscillator();
 
-  [
-    oscL, oscR, subOscL, subOscR,
-    harm2L, harm2R, harm3L, harm3R
-  ].forEach(o => o.type = "sine");
+  harm2L.type = harm2R.type = "sine";
+  harm3L.type = harm3R.type = "sine";
+
+  harm2L.frequency.value = oscL.frequency.value * 2;
+  harm2R.frequency.value = oscR.frequency.value * 2;
+  harm3L.frequency.value = oscL.frequency.value * 3;
+  harm3R.frequency.value = oscR.frequency.value * 3;
 
   /* --- ГЕЙНЫ --- */
-  masterGain = audioCtx.createGain();
-  masterGain.gain.value = 0.18;
+  gainNode = audioCtx.createGain();
+  gainNode.gain.value = 0.18;
 
   const subGain = audioCtx.createGain();
   subGain.gain.value = 0.035;
 
-  const h2Gain = audioCtx.createGain();
-  h2Gain.gain.value = 0.04;
+  const harm2Gain = audioCtx.createGain();
+  harm2Gain.gain.value = 0.04;
 
-  const h3Gain = audioCtx.createGain();
-  h3Gain.gain.value = 0.02;
+  const harm3Gain = audioCtx.createGain();
+  harm3Gain.gain.value = 0.02;
 
   /* --- ПАНОРАМА --- */
   const panL = audioCtx.createStereoPanner();
@@ -86,78 +93,70 @@ function startRitual(stateKey) {
   panR.pan.value = 1;
 
   /* --- СОЕДИНЕНИЯ --- */
-  oscL.connect(panL).connect(masterGain);
-  oscR.connect(panR).connect(masterGain);
-  subOscL.connect(subGain).connect(masterGain);
-  subOscR.connect(subGain).connect(masterGain);
+  oscL.connect(panL).connect(gainNode);
+  oscR.connect(panR).connect(gainNode);
 
-  harm2L.connect(h2Gain).connect(panL).connect(masterGain);
-  harm2R.connect(h2Gain).connect(panR).connect(masterGain);
-  harm3L.connect(h3Gain).connect(panL).connect(masterGain);
-  harm3R.connect(h3Gain).connect(panR).connect(masterGain);
+  subOscL.connect(subGain).connect(gainNode);
+  subOscR.connect(subGain).connect(gainNode);
 
-  masterGain.connect(audioCtx.destination);
+  harm2L.connect(harm2Gain).connect(panL).connect(gainNode);
+  harm2R.connect(harm2Gain).connect(panR).connect(gainNode);
+
+  harm3L.connect(harm3Gain).connect(panL).connect(gainNode);
+  harm3R.connect(harm3Gain).connect(panR).connect(gainNode);
+
+  gainNode.connect(audioCtx.destination);
 
   /* --- СТАРТ --- */
-  [
-    oscL, oscR, subOscL, subOscR,
-    harm2L, harm2R, harm3L, harm3R
-  ].forEach(o => o.start());
+  oscL.start();
+  oscR.start();
+  subOscL.start();
+  subOscR.start();
+  harm2L.start();
+  harm2R.start();
+  harm3L.start();
+  harm3R.start();
 
-  loop();
+  startDrift(cfg);
 }
 
 /* ===============================
-   ОСНОВНОЙ ЦИКЛ
+   ДРЕЙФ (ПЛАВНЫЙ, НЕПРЕРЫВНЫЙ)
    =============================== */
 
-function loop() {
-  if (!audioCtx) return;
+function startDrift(cfg) {
+  driftCfg = cfg;
+  driftStartTime = audioCtx.currentTime;
 
-  const t = audioCtx.currentTime - startTime;
+  const tick = () => {
+    if (!audioCtx) return;
 
-  /* --- АДАПТИВНЫЙ СДВИГ (раз в ~3 мин) --- */
-  if (t - adapt.lastShift > 160) {
-    adapt.lastShift = t;
-    adapt.targetDrift = 0.9 + Math.random() * 0.2;
-    adapt.targetSpace = 0.9 + Math.random() * 0.2;
-  }
+    const t = audioCtx.currentTime - driftStartTime;
 
-  adapt.driftScale += (adapt.targetDrift - adapt.driftScale) * 0.0005;
-  adapt.spaceScale += (adapt.targetSpace - adapt.spaceScale) * 0.0005;
+    const d = Math.sin(t * 0.15) * driftCfg.drift;
+    const sd = Math.sin(t * 0.09 + 1.7) * driftCfg.drift * 0.4;
 
-  /* --- ЧАСТОТНЫЙ ДРЕЙФ --- */
-  const d =
-    Math.sin(t * 0.15) *
-    cfg.drift *
-    adapt.driftScale;
+    const baseL = driftCfg.base + d;
+    const baseR = driftCfg.base - d * 0.6;
 
-  const baseL = cfg.base + d;
-  const baseR = cfg.base - d * 0.6;
+    oscL.frequency.setValueAtTime(baseL, audioCtx.currentTime);
+    oscR.frequency.setValueAtTime(baseR, audioCtx.currentTime);
 
-  oscL.frequency.setValueAtTime(baseL, audioCtx.currentTime);
-  oscR.frequency.setValueAtTime(baseR, audioCtx.currentTime);
-  subOscL.frequency.setValueAtTime(baseL - 2.2, audioCtx.currentTime);
-  subOscR.frequency.setValueAtTime(baseR - 1.8, audioCtx.currentTime);
+    subOscL.frequency.setValueAtTime(baseL - 2.2 + sd, audioCtx.currentTime);
+    subOscR.frequency.setValueAtTime(baseR - 1.8 - sd, audioCtx.currentTime);
 
-  harm2L.frequency.setValueAtTime(baseL * 2, audioCtx.currentTime);
-  harm2R.frequency.setValueAtTime(baseR * 2, audioCtx.currentTime);
-  harm3L.frequency.setValueAtTime(baseL * 3, audioCtx.currentTime);
-  harm3R.frequency.setValueAtTime(baseR * 3, audioCtx.currentTime);
+    harm2L.frequency.setValueAtTime(baseL * 2, audioCtx.currentTime);
+    harm2R.frequency.setValueAtTime(baseR * 2, audioCtx.currentTime);
+    harm3L.frequency.setValueAtTime(baseL * 3, audioCtx.currentTime);
+    harm3R.frequency.setValueAtTime(baseR * 3, audioCtx.currentTime);
 
-  /* --- ПРОСТРАНСТВО --- */
-  const space =
-    1 +
-    Math.sin(t * 0.025 + Math.sin(t * 0.004)) *
-    0.018 *
-    adapt.spaceScale;
+    const res = (d / driftCfg.drift + 1) / 2;
+    document.documentElement.style.setProperty("--res", res.toFixed(3));
 
-  masterGain.gain.setValueAtTime(
-    0.18 * space,
-    audioCtx.currentTime
-  );
+    driftRAF = requestAnimationFrame(tick);
+  };
 
-  raf = requestAnimationFrame(loop);
+  tick();
 }
 
 /* ===============================
@@ -165,28 +164,35 @@ function loop() {
    =============================== */
 
 function stopRitual() {
-  if (!audioCtx || !masterGain) return;
+  if (!audioCtx || !gainNode) return;
 
-  if (raf) cancelAnimationFrame(raf);
-  raf = null;
+  if (driftRAF) cancelAnimationFrame(driftRAF);
+  driftRAF = null;
 
   const now = audioCtx.currentTime;
 
-  masterGain.gain.cancelScheduledValues(now);
-  masterGain.gain.setValueAtTime(masterGain.gain.value, now);
-  masterGain.gain.linearRampToValueAtTime(0.0001, now + 6);
+  gainNode.gain.cancelScheduledValues(now);
+  gainNode.gain.setValueAtTime(gainNode.gain.value, now);
+  gainNode.gain.linearRampToValueAtTime(0.0001, now + 6);
 
   setTimeout(() => {
     try {
-      [
-        oscL, oscR, subOscL, subOscR,
-        harm2L, harm2R, harm3L, harm3R
-      ].forEach(o => o.stop());
+      oscL.stop();
+      oscR.stop();
+      subOscL.stop();
+      subOscR.stop();
+      harm2L.stop();
+      harm2R.stop();
+      harm3L.stop();
+      harm3R.stop();
     } catch(e) {}
 
     audioCtx.close();
+
     audioCtx = null;
-    masterGain = null;
+    oscL = oscR = subOscL = subOscR = null;
+    harm2L = harm2R = harm3L = harm3R = null;
+    gainNode = null;
   }, 6500);
 }
 
