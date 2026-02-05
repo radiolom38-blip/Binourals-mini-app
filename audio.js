@@ -1,61 +1,52 @@
+<script>
 /* ===============================
-   ХРАМ ЗВУКА — АУДИО ЯДРО v3
-   ЭТАП (3): СПЕКТРАЛЬНЫЕ СЛОИ
+   ХРАМ ЗВУКА — АУДИО ЯДРО v4
+   DEMO CORE
+   ACTIVE MODE: BETA / WORK ONLY
    =============================== */
 
 let audioCtx = null;
 
-/* --- ОСНОВА --- */
-let oscL = null;
-let oscR = null;
-let subOscL = null;
-let subOscR = null;
+/* --- ОСЦИЛЛЯТОРЫ --- */
+let oscL, oscR, subOscL, subOscR;
+let harm2L, harm2R, harm3L, harm3R;
 
-/* --- ГАРМОНИКИ --- */
-let harm2L = null;
-let harm2R = null;
-let harm3L = null;
-let harm3R = null;
-
-let gainNode = null;
+/* --- ГЕЙНЫ --- */
+let masterGain = null;
 let driftRAF = null;
 let driftStartTime = 0;
-let driftCfg = null;
 
-/* ---------- СОСТОЯНИЯ ---------- */
+/* ===============================
+   🔒 ЕДИНСТВЕННАЯ КОНФИГУРАЦИЯ
+   =============================== */
 
-const STATES = {
-  sleep:       { base: 96,  drift: 0.8 },
-  meditation: { base: 108, drift: 1.2 },
-  relax:       { base: 120, drift: 1.0 },
-  work:        { base: 156, drift: 1.6 },
-  clarity:     { base: 174, drift: 1.4 }
+const WORK_CFG = {
+  base: 156,   // BETA
+  drift: 1.6
 };
 
 /* ===============================
-   ЗАПУСК РИТУАЛА
+   START (stateKey ИГНОРИРУЕТСЯ)
    =============================== */
 
-function startRitual(stateKey) {
+function startRitual() {
+
   if (audioCtx) return;
 
-  const cfg = STATES[stateKey];
-  if (!cfg) return;
+  const cfg = WORK_CFG;
 
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-  /* --- ОСНОВНЫЕ ОСЦИЛЛЯТОРЫ --- */
+  /* --- ОСНОВА --- */
   oscL = audioCtx.createOscillator();
   oscR = audioCtx.createOscillator();
   subOscL = audioCtx.createOscillator();
   subOscR = audioCtx.createOscillator();
 
-  oscL.type = oscR.type = "sine";
-  subOscL.type = subOscR.type = "sine";
+  [oscL, oscR, subOscL, subOscR].forEach(o => o.type = 'sine');
 
   oscL.frequency.value = cfg.base;
   oscR.frequency.value = cfg.base * 1.004;
-
   subOscL.frequency.value = cfg.base - 2.2;
   subOscR.frequency.value = cfg.base - 1.8;
 
@@ -65,26 +56,15 @@ function startRitual(stateKey) {
   harm3L = audioCtx.createOscillator();
   harm3R = audioCtx.createOscillator();
 
-  harm2L.type = harm2R.type = "sine";
-  harm3L.type = harm3R.type = "sine";
-
-  harm2L.frequency.value = oscL.frequency.value * 2;
-  harm2R.frequency.value = oscR.frequency.value * 2;
-  harm3L.frequency.value = oscL.frequency.value * 3;
-  harm3R.frequency.value = oscR.frequency.value * 3;
+  [harm2L, harm2R, harm3L, harm3R].forEach(o => o.type = 'sine');
 
   /* --- ГЕЙНЫ --- */
-  gainNode = audioCtx.createGain();
-  gainNode.gain.value = 0.18;
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.18;
 
-  const subGain = audioCtx.createGain();
-  subGain.gain.value = 0.035;
-
-  const harm2Gain = audioCtx.createGain();
-  harm2Gain.gain.value = 0.04;
-
-  const harm3Gain = audioCtx.createGain();
-  harm3Gain.gain.value = 0.02;
+  const subGain   = audioCtx.createGain(); subGain.gain.value   = 0.035;
+  const harm2Gain = audioCtx.createGain(); harm2Gain.gain.value = 0.04;
+  const harm3Gain = audioCtx.createGain(); harm3Gain.gain.value = 0.02;
 
   /* --- ПАНОРАМА --- */
   const panL = audioCtx.createStereoPanner();
@@ -93,39 +73,33 @@ function startRitual(stateKey) {
   panR.pan.value = 1;
 
   /* --- СОЕДИНЕНИЯ --- */
-  oscL.connect(panL).connect(gainNode);
-  oscR.connect(panR).connect(gainNode);
+  oscL.connect(panL).connect(masterGain);
+  oscR.connect(panR).connect(masterGain);
 
-  subOscL.connect(subGain).connect(gainNode);
-  subOscR.connect(subGain).connect(gainNode);
+  subOscL.connect(subGain).connect(masterGain);
+  subOscR.connect(subGain).connect(masterGain);
 
-  harm2L.connect(harm2Gain).connect(panL).connect(gainNode);
-  harm2R.connect(harm2Gain).connect(panR).connect(gainNode);
+  harm2L.connect(harm2Gain).connect(panL).connect(masterGain);
+  harm2R.connect(harm2Gain).connect(panR).connect(masterGain);
 
-  harm3L.connect(harm3Gain).connect(panL).connect(gainNode);
-  harm3R.connect(harm3Gain).connect(panR).connect(gainNode);
+  harm3L.connect(harm3Gain).connect(panL).connect(masterGain);
+  harm3R.connect(harm3Gain).connect(panR).connect(masterGain);
 
-  gainNode.connect(audioCtx.destination);
+  masterGain.connect(audioCtx.destination);
 
-  /* --- СТАРТ --- */
-  oscL.start();
-  oscR.start();
-  subOscL.start();
-  subOscR.start();
-  harm2L.start();
-  harm2R.start();
-  harm3L.start();
-  harm3R.start();
+  [
+    oscL, oscR, subOscL, subOscR,
+    harm2L, harm2R, harm3L, harm3R
+  ].forEach(o => o.start());
 
   startDrift(cfg);
 }
 
 /* ===============================
-   ДРЕЙФ (ПЛАВНЫЙ, НЕПРЕРЫВНЫЙ)
+   DRIFT
    =============================== */
 
 function startDrift(cfg) {
-  driftCfg = cfg;
   driftStartTime = audioCtx.currentTime;
 
   const tick = () => {
@@ -133,11 +107,11 @@ function startDrift(cfg) {
 
     const t = audioCtx.currentTime - driftStartTime;
 
-    const d = Math.sin(t * 0.15) * driftCfg.drift;
-    const sd = Math.sin(t * 0.09 + 1.7) * driftCfg.drift * 0.4;
+    const d  = Math.sin(t * 0.15) * cfg.drift;
+    const sd = Math.sin(t * 0.09 + 1.7) * cfg.drift * 0.4;
 
-    const baseL = driftCfg.base + d;
-    const baseR = driftCfg.base - d * 0.6;
+    const baseL = cfg.base + d;
+    const baseR = cfg.base - d * 0.6;
 
     oscL.frequency.setValueAtTime(baseL, audioCtx.currentTime);
     oscR.frequency.setValueAtTime(baseR, audioCtx.currentTime);
@@ -150,8 +124,10 @@ function startDrift(cfg) {
     harm3L.frequency.setValueAtTime(baseL * 3, audioCtx.currentTime);
     harm3R.frequency.setValueAtTime(baseR * 3, audioCtx.currentTime);
 
-    const res = (d / driftCfg.drift + 1) / 2;
-    document.documentElement.style.setProperty("--res", res.toFixed(3));
+    masterGain.gain.setValueAtTime(
+      0.18 * (1 + Math.sin(t * 0.025) * 0.018),
+      audioCtx.currentTime
+    );
 
     driftRAF = requestAnimationFrame(tick);
   };
@@ -160,39 +136,32 @@ function startDrift(cfg) {
 }
 
 /* ===============================
-   МЯГКИЙ ВЫХОД
+   STOP
    =============================== */
 
 function stopRitual() {
-  if (!audioCtx || !gainNode) return;
+
+  if (!audioCtx) return;
 
   if (driftRAF) cancelAnimationFrame(driftRAF);
   driftRAF = null;
 
   const now = audioCtx.currentTime;
-
-  gainNode.gain.cancelScheduledValues(now);
-  gainNode.gain.setValueAtTime(gainNode.gain.value, now);
-  gainNode.gain.linearRampToValueAtTime(0.0001, now + 6);
+  masterGain.gain.cancelScheduledValues(now);
+  masterGain.gain.setValueAtTime(masterGain.gain.value, now);
+  masterGain.gain.linearRampToValueAtTime(0.0001, now + 6);
 
   setTimeout(() => {
     try {
-      oscL.stop();
-      oscR.stop();
-      subOscL.stop();
-      subOscR.stop();
-      harm2L.stop();
-      harm2R.stop();
-      harm3L.stop();
-      harm3R.stop();
-    } catch(e) {}
+      [
+        oscL, oscR, subOscL, subOscR,
+        harm2L, harm2R, harm3L, harm3R
+      ].forEach(o => o.stop());
+    } catch {}
 
     audioCtx.close();
-
     audioCtx = null;
-    oscL = oscR = subOscL = subOscR = null;
-    harm2L = harm2R = harm3L = harm3R = null;
-    gainNode = null;
+    masterGain = null;
   }, 6500);
 }
 
@@ -204,3 +173,12 @@ window.TempleAudio = {
   start: startRitual,
   stop: stopRitual
 };
+</script>
+<script>
+console.log('TempleAudio is', window.TempleAudio);
+for (const k in window) {
+  if (k.toLowerCase().includes('ritual') || k.toLowerCase().includes('audio')) {
+    console.log('GLOBAL:', k);
+  }
+}
+</script>
